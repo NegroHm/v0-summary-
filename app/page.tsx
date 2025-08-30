@@ -1,6 +1,9 @@
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { AnimatedUniversityHeader } from "@/components/animated-university-header"
 import { Brain, FileText, Map, Search, TrendingUp, Users, Upload, Zap, Target, Trophy } from "lucide-react"
 import Link from "next/link"
 
@@ -32,14 +35,8 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl sm:text-6xl font-bold text-foreground mb-6 text-balance">
-            Transform your notes into knowledge with AI
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-pretty">
-            The ultimate study companion for university students. Upload your notes, generate AI-powered summaries,
-            create practice exams, and accelerate your academic success.
-          </p>
+        <div className="max-w-4xl mx-auto">
+          <AnimatedUniversityHeader />
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="text-lg px-8" asChild>
               <Link href="/dashboard">Get Started Free</Link>

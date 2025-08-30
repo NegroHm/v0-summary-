@@ -1,3 +1,5 @@
+'use client'
+
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { LeftSidebar } from "@/components/dashboard/left-sidebar"
 import { ChatInterface } from "@/components/dashboard/chat-interface"

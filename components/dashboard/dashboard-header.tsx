@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -9,10 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Settings, LogOut, User, Home } from "lucide-react"
+import { Settings, LogOut, User, Home, GraduationCap, MapPin } from "lucide-react"
 import Link from "next/link"
+import { UserInfoDisplay } from "@/components/user/user-info-display"
+import { useUser } from "@/lib/user-context"
 
 export function DashboardHeader() {
+  const { user } = useUser()
+
   return (
     <header className="h-16 border-b border-border bg-card">
       <div className="flex items-center justify-between h-full px-6">
@@ -23,6 +29,11 @@ export function DashboardHeader() {
           </div>
           <span className="text-xl font-semibold text-foreground">Summary+</span>
         </Link>
+
+        {/* User Info - Always visible */}
+        <div className="flex-1 flex justify-center">
+          <UserInfoDisplay />
+        </div>
 
         {/* Right side - Theme toggle and user profile */}
         <div className="flex items-center space-x-4">
@@ -39,16 +50,36 @@ export function DashboardHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/diverse-student-profiles.png" alt="Profile" />
-                  <AvatarFallback>JS</AvatarFallback>
+                  <AvatarImage src={user?.avatar || "/diverse-student-profiles.png"} alt="Profile" />
+                  <AvatarFallback>
+                    {user?.info.nombre?.[0]}{user?.info.apellido?.[0]}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-80" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">John Student</p>
-                  <p className="text-xs leading-none text-muted-foreground">john@university.edu</p>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm font-medium leading-none">
+                      {user?.info.nombre} {user?.info.apellido}
+                    </p>
+                  </div>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                    <GraduationCap className="w-3 h-3" />
+                    <span>{user?.info.universidad}</span>
+                  </div>
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                    <span>📚 {user?.info.facultad}</span>
+                  </div>
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                    <MapPin className="w-3 h-3" />
+                    <span>{user?.info.pais}, {user?.info.provincia}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <span>📅 Año {user?.info.año}</span>
+                  </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

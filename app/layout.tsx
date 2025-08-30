@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
+import { UserProvider } from "@/lib/user-context"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -29,7 +30,9 @@ export default function RootLayout({
       <body className={`font-sans ${inter.variable} antialiased`}>
         <Suspense fallback={null}>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            {children}
+            <UserProvider>
+              {children}
+            </UserProvider>
           </ThemeProvider>
         </Suspense>
         <Analytics />
