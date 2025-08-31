@@ -8,9 +8,18 @@ import { RightSidebar } from "@/components/dashboard/right-sidebar"
 import { Button } from "@/components/ui/button"
 import { Menu, X, FileText, Settings } from "lucide-react"
 
+interface UploadedFile {
+  id: string;
+  name: string;
+  hashtags: string[];
+  selected: boolean;
+}
+
 export default function DashboardPage() {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false)
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false)
+  const [sessionId, setSessionId] = useState<string>("")
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
 
   // Prevent body scroll when sidebars are open
   useEffect(() => {
@@ -41,6 +50,20 @@ export default function DashboardPage() {
     setRightSidebarOpen(!rightSidebarOpen)
   }
 
+  const handleFilesUploaded = (files: UploadedFile[], newSessionId: string) => {
+    setUploadedFiles(prev => [...prev, ...files])
+    setSessionId(newSessionId)
+  }
+
+  const handleFileSelectionChange = (selectedFiles: UploadedFile[]) => {
+    setUploadedFiles(prev => 
+      prev.map(file => ({
+        ...file,
+        selected: selectedFiles.some(sf => sf.id === file.id)
+      }))
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader />
@@ -55,7 +78,7 @@ export default function DashboardPage() {
             className="flex items-center gap-2 transition-all duration-200"
           >
             <Menu className="w-4 h-4" />
-            <span>Chats</span>
+            <span>Files</span>
           </Button>
           
           <div className="text-xs text-muted-foreground font-medium">
@@ -69,7 +92,7 @@ export default function DashboardPage() {
             className="flex items-center gap-2 transition-all duration-200"
           >
             <FileText className="w-4 h-4" />
-            <span>Files</span>
+            <span>Stats</span>
           </Button>
         </div>
       </div>
@@ -90,7 +113,10 @@ export default function DashboardPage() {
               <X className="w-4 h-4" />
             </Button>
           </div>
-          <LeftSidebar />
+          <LeftSidebar 
+            onFilesUploaded={handleFilesUploaded}
+            onFileSelectionChange={handleFileSelectionChange}
+          />
         </div>
 
         {/* Mobile Overlay - Unified for both sidebars */}
@@ -103,7 +129,10 @@ export default function DashboardPage() {
 
         {/* Center Column - Chat Interface */}
         <div className="flex-1 flex flex-col min-w-0">
-          <ChatInterface />
+          <ChatInterface 
+            sessionId={sessionId}
+            selectedFiles={uploadedFiles}
+          />
         </div>
 
         {/* Right Sidebar - Mobile Overlay */}

@@ -22,6 +22,15 @@ interface ChatContext {
   recentTopics: string[]
   studyGoals: string[]
   lastAction?: string
+  sessionId?: string
+  selectedFiles?: string[]
+}
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  hashtags: string[];
+  selected: boolean;
 }
 
 const aiResponses = {
@@ -68,14 +77,21 @@ const subjectKeywords = {
   literature: ["literature", "novel", "poem", "author", "character", "theme", "analysis"],
 }
 
-export function ChatInterface() {
+interface ChatInterfaceProps {
+  sessionId?: string;
+  selectedFiles?: UploadedFile[];
+}
+
+export function ChatInterface({ sessionId, selectedFiles = [] }: ChatInterfaceProps) {
   const { isPro, showUpgradeModal, setShowUpgradeModal, upgradeToPro } = useSubscription()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       content: isPro 
-        ? "Hello! Welcome back, Pro member. I'm ready to help with unlimited conversations and advanced features!"
-        : "Hello! I'm your AI study assistant. You have 3 free conversations today. Upgrade to Pro for unlimited access to Study Maps and AI conversations!",
+        ? "Hello! Welcome back, Pro member. I'm ready to help with unlimited conversations and advanced features! Upload files and I'll analyze them with AI."
+        : selectedFiles.filter(f => f.selected).length === 0
+          ? "Hello! I'm your AI study assistant. Upload some files (PDFs or images) in the left sidebar and select at least one. Then you can ask me questions about their content using the power of Gemini AI. You have 3 free conversations today - upgrade to Pro for unlimited access!"
+          : "Hello! I'm your AI study assistant. You have 3 free conversations today. Upgrade to Pro for unlimited access to Study Maps and AI conversations!",
       isUser: false,
       timestamp: new Date(),
       messageType: "text",
@@ -86,8 +102,10 @@ export function ChatInterface() {
   const [chatContext, setChatContext] = useState<ChatContext>({
     recentTopics: [],
     studyGoals: [],
+    sessionId,
+    selectedFiles: selectedFiles.filter(f => f.selected).map(f => f.id),
   })
-  const [conversationsLeft, setConversationsLeft] = useState(isPro ? Infinity : 3)
+  const [conversationsLeft, setConversationsLeft] = useState(() => isPro ? Infinity : 3)
   const [showStudyMap, setShowStudyMap] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -98,6 +116,14 @@ export function ChatInterface() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  useEffect(() => {
+    setChatContext(prev => ({
+      ...prev,
+      sessionId,
+      selectedFiles: selectedFiles.filter(f => f.selected).map(f => f.id),
+    }))
+  }, [sessionId, selectedFiles])
 
   const detectSubject = (text: string): string | undefined => {
     const lowerText = text.toLowerCase()
@@ -178,7 +204,84 @@ export function ChatInterface() {
 
     const currentInput = inputValue
     setInputValue("")
-    simulateAIResponse(currentInput)
+    sendQuestionToGemini(currentInput)
+  }
+
+  const sendQuestionToGemini = async (question: string) => {
+    const selectedCount = selectedFiles.filter(f => f.selected).length
+    
+    if (!sessionId || selectedCount === 0) {
+      // Show error message if no files selected
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content: "⚠️ You must select at least one file to ask questions. Please upload and select files first.",
+        isUser: false,
+        timestamp: new Date(),
+        messageType: "text",
+      }
+      setMessages((prev) => [...prev, errorMessage])
+      return
+    }
+
+    setIsTyping(true)
+
+    // Add typing indicator
+    const typingMessage: Message = {
+      id: "typing",
+      content: "",
+      isUser: false,
+      timestamp: new Date(),
+      isTyping: true,
+    }
+    setMessages((prev) => [...prev, typingMessage])
+
+    try {
+      const response = await fetch('/api/ask-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          question, 
+          selectedFileIds: selectedFiles.filter(f => f.selected).map(f => f.id),
+          sessionId
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }))
+        throw new Error(`Server error (${response.status}): ${errorData.error || 'Unknown error'}`)
+      }
+
+      const data = await response.json()
+      
+      // Remove typing indicator and add actual response
+      setMessages((prev) => prev.filter((msg) => msg.id !== "typing"))
+
+      const aiResponse: Message = {
+        id: Date.now().toString(),
+        content: data.answer,
+        isUser: false,
+        timestamp: new Date(),
+        messageType: "text",
+      }
+
+      setMessages((prev) => [...prev, aiResponse])
+      setIsTyping(false)
+
+    } catch (error) {
+      console.error('Error asking question:', error)
+      // Remove typing indicator and show error
+      setMessages((prev) => prev.filter((msg) => msg.id !== "typing"))
+      
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content: "Sorry, there was an error processing your question. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+        messageType: "text",
+      }
+      setMessages((prev) => [...prev, errorMessage])
+      setIsTyping(false)
+    }
   }
 
   const simulateAIResponse = (userInput: string) => {
@@ -505,17 +608,21 @@ export function ChatInterface() {
         {/* Chat Input */}
         <div className="flex space-x-2">
           <Input
-            placeholder={`Ask me anything about ${chatContext.currentSubject || "your studies"}...`}
+            placeholder={
+              selectedFiles.filter(f => f.selected).length === 0
+                ? "Upload and select files first..."
+                : `Ask questions about the selected files...`
+            }
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
             className="flex-1 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-            disabled={isTyping}
+            disabled={isTyping || selectedFiles.filter(f => f.selected).length === 0}
           />
           <Button
             onClick={handleSendMessage}
             size="icon"
-            disabled={isTyping || !inputValue.trim()}
+            disabled={isTyping || !inputValue.trim() || selectedFiles.filter(f => f.selected).length === 0}
             className="transition-all duration-200 hover:scale-105 active:scale-95"
           >
             {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
