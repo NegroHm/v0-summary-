@@ -1,26 +1,42 @@
-"use client"
+'use client'
 
 import type React from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Flame, Upload, FileText, Clock, CheckCircle } from "lucide-react"
+import { Flame, Upload, FileText, Clock, CheckCircle, Hash, Trash2, X } from "lucide-react"
 import { useState } from "react"
 
-const recentFiles = [
-  { name: "Biology Chapter 12.pdf", time: "2 hours ago", size: "2.4 MB", id: "1" },
-  { name: "Chemistry Notes.docx", time: "1 day ago", size: "1.8 MB", id: "2" },
-  { name: "Physics Formulas.pdf", time: "2 days ago", size: "3.1 MB", id: "3" },
-  { name: "Math Problem Set.pdf", time: "3 days ago", size: "1.2 MB", id: "4" },
-  { name: "History Essay Draft.docx", time: "1 week ago", size: "2.7 MB", id: "5" },
-]
+// We'll generate recent files from uploaded files
+const getRecentFiles = (uploadedFiles: UploadedFile[]) => {
+  return uploadedFiles.slice(-5).reverse().map((file, index) => ({
+    name: file.name,
+    time: "Just uploaded",
+    size: "Processing...",
+    id: file.id
+  }))
+}
 
-export function LeftSidebar() {
+interface UploadedFile {
+  id: string;
+  name: string;
+  hashtags: string[];
+  selected: boolean;
+}
+
+interface LeftSidebarProps {
+  onFilesUploaded?: (files: UploadedFile[], sessionId: string) => void;
+  onFileSelectionChange?: (selectedFiles: UploadedFile[]) => void;
+}
+
+export function LeftSidebar({ onFilesUploaded, onFileSelectionChange }: LeftSidebarProps) {
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [sessionId, setSessionId] = useState<string>('')
+  const [deletedFileIds, setDeletedFileIds] = useState<string[]>([]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -38,43 +54,103 @@ export function LeftSidebar() {
 
     const files = Array.from(e.dataTransfer.files)
     if (files.length > 0) {
-      simulateFileUpload(files[0])
+      uploadFiles(files)
     }
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files && files.length > 0) {
-      simulateFileUpload(files[0])
+      uploadFiles(Array.from(files))
     }
   }
 
-  const simulateFileUpload = (file: File) => {
+  const uploadFiles = async (files: File[]) => {
     setIsUploading(true)
     setUploadProgress(0)
 
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setIsUploading(false)
-          setUploadedFiles((prev) => [...prev, file.name])
+    try {
+      const formData = new FormData()
+      files.forEach(file => formData.append('files', file))
+      
+      // If we have an existing session, send it
+      if (sessionId) {
+        formData.append('sessionId', sessionId)
+      }
 
-          // Simulate AI processing notification
-          setTimeout(() => {
-            console.log(`[v0] AI processing complete for ${file.name}`)
-          }, 1000)
-
-          return 100
-        }
-        return prev + 10
+      const response = await fetch('/api/upload-and-analyze', {
+        method: 'POST',
+        body: formData,
       })
-    }, 200)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || `Server error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      let newFilesWithSelection: UploadedFile[] = data.files.map((file: any) => ({ ...file, selected: true }))
+      
+      // Filter out locally deleted files
+      newFilesWithSelection = newFilesWithSelection.filter(file => !deletedFileIds.includes(file.id));
+
+      const combinedFiles = newFilesWithSelection;
+      
+      setUploadedFiles(combinedFiles)
+      setSessionId(data.sessionId)
+      setUploadProgress(100)
+      
+      console.log('Upload completed:', {
+        newFiles: newFilesWithSelection.length,
+        totalFiles: combinedFiles.length,
+        sessionId: data.sessionId,
+        totalInSession: data.totalFilesInSession
+      })
+      
+      onFilesUploaded?.(combinedFiles, data.sessionId)
+      onFileSelectionChange?.(combinedFiles.filter(file => file.selected))
+      
+    } catch (error) {
+      console.error('Error uploading files:', error)
+      alert(`Error uploading files: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const toggleFileSelection = (fileId: string) => {
+    const updatedFiles = uploadedFiles.map(file => 
+      file.id === fileId ? { ...file, selected: !file.selected } : file
+    )
+    setUploadedFiles(updatedFiles)
+    onFileSelectionChange?.(updatedFiles.filter(file => file.selected))
   }
 
   const handleFileClick = (fileId: string) => {
-    console.log(`[v0] Opening file with ID: ${fileId}`)
-    // Simulate file opening
+    toggleFileSelection(fileId)
+  }
+
+  const clearAllFiles = () => {
+    setUploadedFiles([])
+    setSessionId('')
+    onFilesUploaded?.([], '')
+    onFileSelectionChange?.([])
+  }
+
+  const deleteFile = (fileId: string) => {
+    const updatedFiles = uploadedFiles.filter(file => file.id !== fileId)
+    setUploadedFiles(updatedFiles)
+    setDeletedFileIds(prev => [...prev, fileId]); // Remember deleted file
+    onFileSelectionChange?.(updatedFiles.filter(file => file.selected))
+    
+    console.log('File deleted:', { fileId, remainingFiles: updatedFiles.length })
+    
+    // If no files left, clear the session
+    if (updatedFiles.length === 0) {
+      setSessionId('')
+      onFilesUploaded?.([], '')
+      console.log('All files deleted, session cleared')
+    }
   }
 
   return (
@@ -130,7 +206,8 @@ export function LeftSidebar() {
                   id="file-upload"
                   className="hidden"
                   onChange={handleFileSelect}
-                  accept=".pdf,.doc,.docx,.txt"
+                  accept="image/*,application/pdf"
+                  multiple
                 />
                 <Button variant="outline" size="sm" asChild>
                   <label htmlFor="file-upload" className="cursor-pointer">
@@ -142,11 +219,56 @@ export function LeftSidebar() {
           </div>
 
           {uploadedFiles.length > 0 && (
-            <div className="mt-3 space-y-2">
-              {uploadedFiles.map((fileName, index) => (
-                <div key={index} className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>{fileName} uploaded successfully</span>
+            <div className="mt-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-sm text-foreground">Uploaded Files</h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAllFiles}
+                  className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-3 h-3 mr-1" />
+                  Clear All
+                </Button>
+              </div>
+              {uploadedFiles.map((file) => (
+                <div 
+                  key={file.id} 
+                  className={`group p-3 border rounded-lg transition-all relative ${
+                    file.selected ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/50'
+                  }`}
+                >
+                  <div 
+                    className="cursor-pointer"
+                    onClick={() => handleFileClick(file.id)}
+                  >
+                    <div className="flex items-center space-x-2 mb-2 pr-6">
+                      <CheckCircle className={`w-4 h-4 flex-shrink-0 ${file.selected ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className="text-sm font-medium truncate">{file.name}</span>
+                    </div>
+                    {file.hashtags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {file.hashtags.map((hashtag, index) => (
+                          <span key={index} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-muted rounded-full">
+                            <Hash className="w-3 h-3" />
+                            {hashtag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      deleteFile(file.id)
+                    }}
+                    className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -159,28 +281,36 @@ export function LeftSidebar() {
         <CardContent className="p-4">
           <h3 className="font-semibold text-foreground mb-3">Recent Files</h3>
           <div className="space-y-2">
-            {recentFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                onClick={() => handleFileClick(file.id)}
-              >
-                <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">
-                    {file.name}
-                  </p>
-                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                    <Clock className="w-3 h-3" />
-                    <span>{file.time}</span>
-                    <span>•</span>
-                    <span>{file.size}</span>
+            {uploadedFiles.length > 0 ? (
+              getRecentFiles(uploadedFiles).map((file, index) => (
+                <div
+                  key={file.id}
+                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => handleFileClick(file.id)}
+                >
+                  <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">
+                      {file.name}
+                    </p>
+                    <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      <span>{file.time}</span>
+                      <span>•</span>
+                      <span>{file.size}</span>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No files uploaded yet</p>
+                <p className="text-xs">Upload files to see them here</p>
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
       </Card>
