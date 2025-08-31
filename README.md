@@ -44,7 +44,7 @@ An intelligent study companion platform for university students featuring AI-pow
 
 ## 🏗️ Project Structure
 
-```
+\`\`\`
 ├── app/
 │   ├── api/                    # API routes
 │   │   ├── ask-question/       # Gemini AI Q&A endpoint
@@ -68,7 +68,7 @@ An intelligent study companion platform for university students featuring AI-pow
 │   ├── types.ts               # TypeScript definitions
 │   └── utils.ts               # Utility functions
 └── public/                    # Static assets
-```
+\`\`\`
 
 ## 🚀 Getting Started
 
@@ -80,24 +80,24 @@ An intelligent study companion platform for university students featuring AI-pow
 ### Installation
 
 1. **Clone the repository:**
-   ```bash
+   \`\`\`bash
    git clone <repository-url>
    cd v0-summary-
-   ```
+   \`\`\`
 
 2. **Install dependencies:**
-   ```bash
+   \`\`\`bash
    npm install
    # or
    pnpm install
-   ```
+   \`\`\`
 
 3. **Set up environment variables:**
    
    Create a `.env.local` file in the project root:
-   ```env
+   \`\`\`env
    GOOGLE_API_KEY=your_gemini_api_key_here
-   ```
+   \`\`\`
 
    To get a Google Gemini API key:
    - Visit: https://makersuite.google.com/app/apikey
@@ -105,9 +105,9 @@ An intelligent study companion platform for university students featuring AI-pow
    - Create a new API key
 
 4. **Start the development server:**
-   ```bash
+   \`\`\`bash
    npm run dev
-   ```
+   \`\`\`
 
 5. **Open your browser:**
    Navigate to [http://localhost:3000](http://localhost:3000)
@@ -200,9 +200,9 @@ An intelligent study companion platform for university students featuring AI-pow
    - Configure environment variables in Vercel dashboard
 
 2. **Environment Variables:**
-   ```env
+   \`\`\`env
    GOOGLE_API_KEY=your_gemini_api_key_here
-   ```
+   \`\`\`
 
 3. **Deploy:**
    - Vercel will automatically build and deploy
@@ -211,14 +211,14 @@ An intelligent study companion platform for university students featuring AI-pow
 ### Manual Deployment
 
 1. **Build the project:**
-   ```bash
+   \`\`\`bash
    npm run build
-   ```
+   \`\`\`
 
 2. **Start production server:**
-   ```bash
+   \`\`\`bash
    npm start
-   ```
+   \`\`\`
 
 ## 🔍 Development
 

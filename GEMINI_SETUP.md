@@ -12,14 +12,14 @@ This dashboard now includes Google Gemini AI integration for analyzing uploaded 
 2. **Add the API Key:**
    - Edit the `.env.local` file in the project root
    - Replace `your_api_key_here` with your actual API key:
-     ```
+     \`\`\`
      GOOGLE_API_KEY=your_actual_api_key_here
-     ```
+     \`\`\`
 
 3. **Start the Development Server:**
-   ```bash
+   \`\`\`bash
    npm run dev
-   ```
+   \`\`\`
 
 ## Features
 
