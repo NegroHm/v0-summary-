@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { UserProvider } from "@/lib/user-context"
+import { SubscriptionProvider } from "@/lib/subscription-context"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -31,7 +32,9 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             <UserProvider>
-              {children}
+              <SubscriptionProvider>
+                {children}
+              </SubscriptionProvider>
             </UserProvider>
           </ThemeProvider>
         </Suspense>

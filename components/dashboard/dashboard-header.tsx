@@ -54,7 +54,7 @@ export function DashboardHeader() {
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user?.avatar || "/diverse-student-profiles.png"} alt="Profile" />
                   <AvatarFallback>
-                    {user?.info.nombre?.[0]}{user?.info.apellido?.[0]}
+                    {user?.info.firstName?.[0]}{user?.info.lastName?.[0]}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -64,23 +64,23 @@ export function DashboardHeader() {
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center space-x-2">
                     <p className="text-sm font-medium leading-none">
-                      {user?.info.nombre} {user?.info.apellido}
+                      {user?.info.firstName} {user?.info.lastName}
                     </p>
                   </div>
                   <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                   <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                     <GraduationCap className="w-3 h-3" />
-                    <span>{user?.info.universidad}</span>
+                    <span>{user?.info.university}</span>
                   </div>
                   <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                    <span>📚 {user?.info.facultad}</span>
+                    <span>📚 {user?.info.faculty}</span>
                   </div>
                   <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                     <MapPin className="w-3 h-3" />
-                    <span>{user?.info.pais}, {user?.info.provincia}</span>
+                    <span>{user?.info.country}, {user?.info.state}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    <span>📅 Año {user?.info.año}</span>
+                    <span>📅 Year {user?.info.year}</span>
                   </div>
                 </div>
               </DropdownMenuLabel>

@@ -5,12 +5,17 @@ import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { FileText, Clock, Trophy, Calendar, TrendingUp, Target } from "lucide-react"
 import { useState, useEffect } from "react"
+import { RankingDashboard } from "@/components/ranking/ranking-dashboard"
+import { useSubscription } from "@/lib/subscription-context"
+import { ProUpgradeModal } from "@/components/subscription/pro-upgrade-modal"
 
 export function RightSidebar() {
+  const { isPro, showUpgradeModal, setShowUpgradeModal, upgradeToPro } = useSubscription()
   const [examDays, setExamDays] = useState(5)
   const [studyProgress, setStudyProgress] = useState(60)
   const [dailyGoalProgress, setDailyGoalProgress] = useState(80)
   const [weeklyGoalProgress, setWeeklyGoalProgress] = useState(280)
+  const [activeTab, setActiveTab] = useState<'stats' | 'ranking'>('stats')
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -32,7 +37,32 @@ export function RightSidebar() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col h-full">
+      {/* Tab Navigation */}
+      <div className="p-4 border-b border-border">
+        <div className="grid grid-cols-2 gap-1 bg-muted/30 p-1 rounded-lg">
+          <Button
+            variant={activeTab === 'stats' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('stats')}
+            className="h-8"
+          >
+            Statistics
+          </Button>
+          <Button
+            variant={activeTab === 'ranking' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('ranking')}
+            className="h-8"
+          >
+            Rankings
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === 'stats' ? (
+          <div className="p-6 space-y-6">
       {/* Study Statistics */}
       <Card className="hover:shadow-md transition-shadow duration-200">
         <CardHeader>
@@ -171,6 +201,18 @@ export function RightSidebar() {
           </Button>
         </CardContent>
       </Card>
+          </div>
+        ) : (
+          <RankingDashboard />
+        )}
+      </div>
+
+      {/* Pro Upgrade Modal */}
+      <ProUpgradeModal 
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        onSubscribe={upgradeToPro}
+      />
     </div>
   )
 }

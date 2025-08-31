@@ -11,19 +11,19 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
-// Datos de ejemplo
+// Sample data
 const defaultUser: User = {
   id: '1',
-  email: 'estudiante@universidad.edu',
+  email: 'student@university.edu',
   avatar: '/diverse-student-profiles.png',
   info: {
-    nombre: 'Juan',
-    apellido: 'Pérez',
-    pais: 'Argentina',
-    provincia: 'Buenos Aires',
-    universidad: 'Universidad de Buenos Aires',
-    facultad: 'Facultad de Ingeniería',
-    año: 3
+    firstName: 'Juan',
+    lastName: 'Pérez',
+    country: 'Argentina',
+    state: 'Buenos Aires',
+    university: 'University of Buenos Aires',
+    faculty: 'Faculty of Engineering',
+    year: 3
   }
 }
 

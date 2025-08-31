@@ -89,9 +89,11 @@ export default function LandingPage() {
                     </p>
                     <div className="flex flex-col gap-3 max-w-sm mx-auto lg:max-w-none lg:mx-0">
                       <StudyMapPopup />
-                      <Button className="bg-gradient-to-r from-primary to-primary/80 text-sm sm:text-base">
-                        <span className="hidden sm:inline">Upgrade to Pro - $9.99/month</span>
-                        <span className="sm:hidden">Pro - $9.99/mo</span>
+                      <Button className="bg-gradient-to-r from-primary to-primary/80 text-sm sm:text-base" asChild>
+                        <Link href="/dashboard">
+                          <span className="hidden sm:inline">Upgrade to Pro - $10/month</span>
+                          <span className="sm:hidden">Pro - $10/mo</span>
+                        </Link>
                       </Button>
                     </div>
                   </div>
@@ -131,9 +133,11 @@ export default function LandingPage() {
                 <p className="text-muted-foreground mb-4 text-sm sm:text-base text-center sm:text-left">
                   Instantly generate comprehensive summaries from your lecture notes and textbooks
                 </p>
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
-                  <span className="hidden sm:inline">Try Free - Then $4.99/month</span>
-                  <span className="sm:hidden">Free Trial - $4.99/mo</span>
+                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" asChild>
+                  <Link href="/dashboard">
+                    <span className="hidden sm:inline">Try Free - Then $10/month</span>
+                    <span className="sm:hidden">Free Trial - $10/mo</span>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -147,9 +151,11 @@ export default function LandingPage() {
                 <p className="text-muted-foreground mb-4 text-sm sm:text-base text-center sm:text-left">
                   Create custom practice tests and quizzes based on your study materials
                 </p>
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
-                  <span className="hidden sm:inline">Try Free - Then $4.99/month</span>
-                  <span className="sm:hidden">Free Trial - $4.99/mo</span>
+                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" asChild>
+                  <Link href="/dashboard">
+                    <span className="hidden sm:inline">Try Free - Then $10/month</span>
+                    <span className="sm:hidden">Free Trial - $10/mo</span>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -163,9 +169,11 @@ export default function LandingPage() {
                 <p className="text-muted-foreground mb-4 text-sm sm:text-base text-center sm:text-left">
                   Find specific information across all your notes with semantic search
                 </p>
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
-                  <span className="hidden sm:inline">Try Free - Then $4.99/month</span>
-                  <span className="sm:hidden">Free Trial - $4.99/mo</span>
+                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" asChild>
+                  <Link href="/dashboard">
+                    <span className="hidden sm:inline">Try Free - Then $10/month</span>
+                    <span className="sm:hidden">Free Trial - $10/mo</span>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -177,9 +185,11 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2 text-center sm:text-left">Progress Tracking</h3>
                 <p className="text-muted-foreground mb-4 text-sm sm:text-base text-center sm:text-left">Monitor your study habits and track improvement over time</p>
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
-                  <span className="hidden sm:inline">Try Free - Then $4.99/month</span>
-                  <span className="sm:hidden">Free Trial - $4.99/mo</span>
+                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" asChild>
+                  <Link href="/dashboard">
+                    <span className="hidden sm:inline">Try Free - Then $10/month</span>
+                    <span className="sm:hidden">Free Trial - $10/mo</span>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -191,9 +201,11 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2 text-center sm:text-left">Collaborative Learning</h3>
                 <p className="text-muted-foreground mb-4 text-sm sm:text-base text-center sm:text-left">Share notes and study together with classmates in your courses</p>
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
-                  <span className="hidden sm:inline">Try Free - Then $4.99/month</span>
-                  <span className="sm:hidden">Free Trial - $4.99/mo</span>
+                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" asChild>
+                  <Link href="/dashboard">
+                    <span className="hidden sm:inline">Try Free - Then $10/month</span>
+                    <span className="sm:hidden">Free Trial - $10/mo</span>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -207,9 +219,11 @@ export default function LandingPage() {
                 <p className="text-muted-foreground mb-4 text-sm sm:text-base text-center sm:text-left">
                   Create visual connections between concepts for better understanding
                 </p>
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
-                  <span className="hidden sm:inline">Try Free - Then $4.99/month</span>
-                  <span className="sm:hidden">Free Trial - $4.99/mo</span>
+                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" asChild>
+                  <Link href="/dashboard">
+                    <span className="hidden sm:inline">Try Free - Then $10/month</span>
+                    <span className="sm:hidden">Free Trial - $10/mo</span>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>

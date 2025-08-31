@@ -24,7 +24,7 @@ export function AnimatedUniversityHeader() {
         setCurrentIndex((prev) => (prev + 1) % universityAbbreviations.length)
         setIsVisible(true)
       }, 300)
-    }, 2000) // Cambio cada 2 segundos
+    }, 2000) // Change every 2 seconds
 
     return () => clearInterval(interval)
   }, [])

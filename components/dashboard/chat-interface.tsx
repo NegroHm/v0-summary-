@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Send, Brain, FileText, Map, Search, Loader2, BookOpen, Target, Lightbulb, Lock, Crown } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { StudyMapSimulator } from "@/components/study-map-simulator"
+import { useSubscription } from "@/lib/subscription-context"
+import { ProUpgradeModal } from "@/components/subscription/pro-upgrade-modal"
 
 interface Message {
   id: string
@@ -67,11 +69,13 @@ const subjectKeywords = {
 }
 
 export function ChatInterface() {
+  const { isPro, showUpgradeModal, setShowUpgradeModal, upgradeToPro } = useSubscription()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      content:
-        "Hello! I'm your AI study assistant. You have 3 free conversations today. Upgrade to Pro for unlimited access to Study Maps and AI conversations!",
+      content: isPro 
+        ? "Hello! Welcome back, Pro member. I'm ready to help with unlimited conversations and advanced features!"
+        : "Hello! I'm your AI study assistant. You have 3 free conversations today. Upgrade to Pro for unlimited access to Study Maps and AI conversations!",
       isUser: false,
       timestamp: new Date(),
       messageType: "text",
@@ -83,7 +87,7 @@ export function ChatInterface() {
     recentTopics: [],
     studyGoals: [],
   })
-  const [conversationsLeft, setConversationsLeft] = useState(3)
+  const [conversationsLeft, setConversationsLeft] = useState(isPro ? Infinity : 3)
   const [showStudyMap, setShowStudyMap] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -145,15 +149,8 @@ export function ChatInterface() {
   const handleSendMessage = () => {
     if (!inputValue.trim() || isTyping) return
 
-    if (conversationsLeft <= 0) {
-      const limitMessage: Message = {
-        id: Date.now().toString(),
-        content: "You've reached your daily conversation limit. Upgrade to Pro for unlimited AI conversations and access to Study Maps!",
-        isUser: false,
-        timestamp: new Date(),
-        messageType: "text",
-      }
-      setMessages((prev) => [...prev, limitMessage])
+    if (!isPro && conversationsLeft <= 0) {
+      setShowUpgradeModal(true)
       return
     }
 
@@ -165,7 +162,9 @@ export function ChatInterface() {
     }
 
     setMessages((prev) => [...prev, newMessage])
-    setConversationsLeft(prev => prev - 1)
+    if (!isPro) {
+      setConversationsLeft(prev => prev - 1)
+    }
 
     // Update context with recent topics
     const detectedSubject = detectSubject(inputValue)
@@ -265,24 +264,23 @@ export function ChatInterface() {
     if (isTyping) return
 
     if (action === 'map') {
+      if (!isPro) {
+        setShowUpgradeModal(true)
+        return
+      }
       setShowStudyMap(true)
       return
     }
 
-    if (conversationsLeft <= 0) {
-      const limitMessage: Message = {
-        id: Date.now().toString(),
-        content: "Feature locked! Upgrade to Pro for unlimited access to AI summaries, exam generation, and search functionality.",
-        isUser: false,
-        timestamp: new Date(),
-        messageType: "text",
-      }
-      setMessages((prev) => [...prev, limitMessage])
+    if (!isPro && conversationsLeft <= 0) {
+      setShowUpgradeModal(true)
       return
     }
 
     setChatContext((prev) => ({ ...prev, lastAction: action }))
-    setConversationsLeft(prev => prev - 1)
+    if (!isPro) {
+      setConversationsLeft(prev => prev - 1)
+    }
 
     const responses = {
       summary: aiResponses.summary[Math.floor(Math.random() * aiResponses.summary.length)],
@@ -347,7 +345,14 @@ export function ChatInterface() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              {conversationsLeft > 0 ? (
+              {isPro ? (
+                <>
+                  <Crown className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm text-primary font-semibold">
+                    Pro Member - Unlimited Access
+                  </span>
+                </>
+              ) : conversationsLeft > 0 ? (
                 <>
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <span className="text-sm text-muted-foreground">
@@ -362,10 +367,16 @@ export function ChatInterface() {
               )}
             </div>
           </div>
-          <Button size="sm" className="bg-gradient-to-r from-primary to-primary/80">
-            <Crown className="w-3 h-3 mr-1" />
-            Upgrade Pro
-          </Button>
+          {!isPro && (
+            <Button 
+              size="sm" 
+              className="bg-gradient-to-r from-primary to-primary/80"
+              onClick={() => setShowUpgradeModal(true)}
+            >
+              <Crown className="w-3 h-3 mr-1" />
+              Upgrade Pro
+            </Button>
+          )}
         </div>
       </div>
 
@@ -431,14 +442,14 @@ export function ChatInterface() {
           <Button
             variant="outline"
             className={`flex items-center space-x-2 h-10 sm:h-12 bg-transparent transition-all duration-200 active:scale-95 ${
-              conversationsLeft <= 0 
+              !isPro && conversationsLeft <= 0 
                 ? 'opacity-50 cursor-not-allowed hover:bg-muted/20' 
                 : 'hover:bg-primary/5 hover:border-primary/50'
             }`}
             onClick={() => handleActionButton("summary")}
-            disabled={isTyping || conversationsLeft <= 0}
+            disabled={isTyping || (!isPro && conversationsLeft <= 0)}
           >
-            {conversationsLeft <= 0 ? <Lock className="w-4 h-4 text-muted-foreground" /> : <Brain className="w-4 h-4" />}
+            {!isPro && conversationsLeft <= 0 ? <Lock className="w-4 h-4 text-muted-foreground" /> : <Brain className="w-4 h-4" />}
             <span className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Generate </span>Summary
             </span>
@@ -446,41 +457,45 @@ export function ChatInterface() {
           <Button
             variant="outline"
             className={`flex items-center space-x-2 h-10 sm:h-12 bg-transparent transition-all duration-200 active:scale-95 ${
-              conversationsLeft <= 0 
+              !isPro && conversationsLeft <= 0 
                 ? 'opacity-50 cursor-not-allowed hover:bg-muted/20' 
                 : 'hover:bg-primary/5 hover:border-primary/50'
             }`}
             onClick={() => handleActionButton("exam")}
-            disabled={isTyping || conversationsLeft <= 0}
+            disabled={isTyping || (!isPro && conversationsLeft <= 0)}
           >
-            {conversationsLeft <= 0 ? <Lock className="w-4 h-4 text-muted-foreground" /> : <FileText className="w-4 h-4" />}
+            {!isPro && conversationsLeft <= 0 ? <Lock className="w-4 h-4 text-muted-foreground" /> : <FileText className="w-4 h-4" />}
             <span className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Create </span>Exam
             </span>
           </Button>
           <Button
             variant="outline"
-            className="flex items-center space-x-2 h-10 sm:h-12 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30 hover:from-primary/20 hover:to-primary/10 transition-all duration-200 active:scale-95 relative"
+            className={`flex items-center space-x-2 h-10 sm:h-12 transition-all duration-200 active:scale-95 relative ${
+              isPro 
+                ? 'bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border-yellow-400/50 hover:from-yellow-400/30 hover:to-yellow-600/30'
+                : 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30 hover:from-primary/20 hover:to-primary/10'
+            }`}
             onClick={() => handleActionButton("map")}
             disabled={isTyping}
           >
-            <Crown className="w-3 h-3 absolute -top-1 -right-1 text-primary" />
-            <Map className="w-4 h-4 text-primary" />
-            <span className="text-xs sm:text-sm text-primary font-medium">
-              Study Map
+            <Crown className={`w-3 h-3 absolute -top-1 -right-1 ${isPro ? 'text-yellow-500' : 'text-primary'}`} />
+            <Map className={`w-4 h-4 ${isPro ? 'text-yellow-600' : 'text-primary'}`} />
+            <span className={`text-xs sm:text-sm font-medium ${isPro ? 'text-yellow-600' : 'text-primary'}`}>
+              Study Map{isPro ? ' Pro' : ''}
             </span>
           </Button>
           <Button
             variant="outline"
             className={`flex items-center space-x-2 h-10 sm:h-12 bg-transparent transition-all duration-200 active:scale-95 ${
-              conversationsLeft <= 0 
+              !isPro && conversationsLeft <= 0 
                 ? 'opacity-50 cursor-not-allowed hover:bg-muted/20' 
                 : 'hover:bg-primary/5 hover:border-primary/50'
             }`}
             onClick={() => handleActionButton("search")}
-            disabled={isTyping || conversationsLeft <= 0}
+            disabled={isTyping || (!isPro && conversationsLeft <= 0)}
           >
-            {conversationsLeft <= 0 ? <Lock className="w-4 h-4 text-muted-foreground" /> : <Search className="w-4 h-4" />}
+            {!isPro && conversationsLeft <= 0 ? <Lock className="w-4 h-4 text-muted-foreground" /> : <Search className="w-4 h-4" />}
             <span className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Search </span>Notes
             </span>
@@ -507,6 +522,13 @@ export function ChatInterface() {
           </Button>
         </div>
       </div>
+
+      {/* Pro Upgrade Modal */}
+      <ProUpgradeModal 
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        onSubscribe={upgradeToPro}
+      />
     </div>
   )
 }

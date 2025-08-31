@@ -1,11 +1,11 @@
 export interface UserInfo {
-  nombre: string
-  apellido: string
-  pais: string
-  provincia: string
-  universidad: string
-  facultad: string
-  año: number
+  firstName: string
+  lastName: string
+  country: string
+  state: string
+  university: string
+  faculty: string
+  year: number
 }
 
 export interface User {
