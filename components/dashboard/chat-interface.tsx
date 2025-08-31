@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Brain, FileText, Map, Search, Loader2, BookOpen, Target, Lightbulb } from "lucide-react"
+import { Send, Brain, FileText, Map, Search, Loader2, BookOpen, Target, Lightbulb, Lock, Crown } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
+import { StudyMapSimulator } from "@/components/study-map-simulator"
 
 interface Message {
   id: string
@@ -70,7 +71,7 @@ export function ChatInterface() {
     {
       id: "1",
       content:
-        "Hello! I'm your AI study assistant. I'm here to help you succeed academically. Upload some notes, ask me questions, or let me know what subject you're working on today!",
+        "Hello! I'm your AI study assistant. You have 3 free conversations today. Upgrade to Pro for unlimited access to Study Maps and AI conversations!",
       isUser: false,
       timestamp: new Date(),
       messageType: "text",
@@ -82,6 +83,8 @@ export function ChatInterface() {
     recentTopics: [],
     studyGoals: [],
   })
+  const [conversationsLeft, setConversationsLeft] = useState(3)
+  const [showStudyMap, setShowStudyMap] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -142,6 +145,18 @@ export function ChatInterface() {
   const handleSendMessage = () => {
     if (!inputValue.trim() || isTyping) return
 
+    if (conversationsLeft <= 0) {
+      const limitMessage: Message = {
+        id: Date.now().toString(),
+        content: "You've reached your daily conversation limit. Upgrade to Pro for unlimited AI conversations and access to Study Maps!",
+        isUser: false,
+        timestamp: new Date(),
+        messageType: "text",
+      }
+      setMessages((prev) => [...prev, limitMessage])
+      return
+    }
+
     const newMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
@@ -150,6 +165,7 @@ export function ChatInterface() {
     }
 
     setMessages((prev) => [...prev, newMessage])
+    setConversationsLeft(prev => prev - 1)
 
     // Update context with recent topics
     const detectedSubject = detectSubject(inputValue)
@@ -248,7 +264,25 @@ export function ChatInterface() {
   const handleActionButton = (action: string) => {
     if (isTyping) return
 
+    if (action === 'map') {
+      setShowStudyMap(true)
+      return
+    }
+
+    if (conversationsLeft <= 0) {
+      const limitMessage: Message = {
+        id: Date.now().toString(),
+        content: "Feature locked! Upgrade to Pro for unlimited access to AI summaries, exam generation, and search functionality.",
+        isUser: false,
+        timestamp: new Date(),
+        messageType: "text",
+      }
+      setMessages((prev) => [...prev, limitMessage])
+      return
+    }
+
     setChatContext((prev) => ({ ...prev, lastAction: action }))
+    setConversationsLeft(prev => prev - 1)
 
     const responses = {
       summary: aiResponses.summary[Math.floor(Math.random() * aiResponses.summary.length)],
@@ -288,10 +322,55 @@ export function ChatInterface() {
     }
   }
 
+  if (showStudyMap) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="p-4 border-b border-border bg-card">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Study Map Generator</h2>
+            <Button variant="ghost" size="sm" onClick={() => setShowStudyMap(false)}>
+              ← Back to Chat
+            </Button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <StudyMapSimulator />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-full">
+      {/* Usage Limit Indicator */}
+      <div className="p-4 border-b border-border bg-muted/30">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {conversationsLeft > 0 ? (
+                <>
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span className="text-sm text-muted-foreground">
+                    {conversationsLeft} conversations remaining today
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4 text-red-500" />
+                  <span className="text-sm text-red-500">Daily limit reached</span>
+                </>
+              )}
+            </div>
+          </div>
+          <Button size="sm" className="bg-gradient-to-r from-primary to-primary/80">
+            <Crown className="w-3 h-3 mr-1" />
+            Upgrade Pro
+          </Button>
+        </div>
+      </div>
+
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
             <div
@@ -347,43 +426,64 @@ export function ChatInterface() {
       )}
 
       {/* Action Buttons */}
-      <div className="p-6 border-t border-border">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      <div className="p-4 sm:p-6 border-t border-border">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-4">
           <Button
             variant="outline"
-            className="flex items-center space-x-2 h-12 bg-transparent hover:bg-primary/5 hover:border-primary/50 transition-all duration-200 active:scale-95"
+            className={`flex items-center space-x-2 h-10 sm:h-12 bg-transparent transition-all duration-200 active:scale-95 ${
+              conversationsLeft <= 0 
+                ? 'opacity-50 cursor-not-allowed hover:bg-muted/20' 
+                : 'hover:bg-primary/5 hover:border-primary/50'
+            }`}
             onClick={() => handleActionButton("summary")}
-            disabled={isTyping}
+            disabled={isTyping || conversationsLeft <= 0}
           >
-            {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
-            <span className="text-sm">Generate Summary</span>
+            {conversationsLeft <= 0 ? <Lock className="w-4 h-4 text-muted-foreground" /> : <Brain className="w-4 h-4" />}
+            <span className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Generate </span>Summary
+            </span>
           </Button>
           <Button
             variant="outline"
-            className="flex items-center space-x-2 h-12 bg-transparent hover:bg-primary/5 hover:border-primary/50 transition-all duration-200 active:scale-95"
+            className={`flex items-center space-x-2 h-10 sm:h-12 bg-transparent transition-all duration-200 active:scale-95 ${
+              conversationsLeft <= 0 
+                ? 'opacity-50 cursor-not-allowed hover:bg-muted/20' 
+                : 'hover:bg-primary/5 hover:border-primary/50'
+            }`}
             onClick={() => handleActionButton("exam")}
-            disabled={isTyping}
+            disabled={isTyping || conversationsLeft <= 0}
           >
-            {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-            <span className="text-sm">Create Exam</span>
+            {conversationsLeft <= 0 ? <Lock className="w-4 h-4 text-muted-foreground" /> : <FileText className="w-4 h-4" />}
+            <span className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Create </span>Exam
+            </span>
           </Button>
           <Button
             variant="outline"
-            className="flex items-center space-x-2 h-12 bg-transparent hover:bg-primary/5 hover:border-primary/50 transition-all duration-200 active:scale-95"
+            className="flex items-center space-x-2 h-10 sm:h-12 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30 hover:from-primary/20 hover:to-primary/10 transition-all duration-200 active:scale-95 relative"
             onClick={() => handleActionButton("map")}
             disabled={isTyping}
           >
-            {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Map className="w-4 h-4" />}
-            <span className="text-sm">Study Map</span>
+            <Crown className="w-3 h-3 absolute -top-1 -right-1 text-primary" />
+            <Map className="w-4 h-4 text-primary" />
+            <span className="text-xs sm:text-sm text-primary font-medium">
+              Study Map
+            </span>
           </Button>
           <Button
             variant="outline"
-            className="flex items-center space-x-2 h-12 bg-transparent hover:bg-primary/5 hover:border-primary/50 transition-all duration-200 active:scale-95"
+            className={`flex items-center space-x-2 h-10 sm:h-12 bg-transparent transition-all duration-200 active:scale-95 ${
+              conversationsLeft <= 0 
+                ? 'opacity-50 cursor-not-allowed hover:bg-muted/20' 
+                : 'hover:bg-primary/5 hover:border-primary/50'
+            }`}
             onClick={() => handleActionButton("search")}
-            disabled={isTyping}
+            disabled={isTyping || conversationsLeft <= 0}
           >
-            {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-            <span className="text-sm">Search Notes</span>
+            {conversationsLeft <= 0 ? <Lock className="w-4 h-4 text-muted-foreground" /> : <Search className="w-4 h-4" />}
+            <span className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Search </span>Notes
+            </span>
           </Button>
         </div>
 

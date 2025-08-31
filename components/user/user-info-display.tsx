@@ -11,7 +11,7 @@ export function UserInfoDisplay() {
   const { info } = user
 
   return (
-    <div className="flex items-center space-x-2 text-sm">
+    <div className="hidden md:flex items-center space-x-2 text-sm">
       <span className="font-medium text-foreground">
         {info.nombre} {info.apellido}
       </span>
@@ -19,16 +19,16 @@ export function UserInfoDisplay() {
       <Badge variant="secondary" className="text-xs">
         {info.universidad}
       </Badge>
-      <span className="text-muted-foreground">•</span>
-      <Badge variant="outline" className="text-xs">
+      <span className="text-muted-foreground hidden lg:inline">•</span>
+      <Badge variant="outline" className="text-xs hidden lg:inline-flex">
         {info.facultad}
       </Badge>
-      <span className="text-muted-foreground">•</span>
-      <span className="text-muted-foreground">
+      <span className="text-muted-foreground hidden xl:inline">•</span>
+      <span className="text-muted-foreground hidden xl:inline">
         {info.pais}, {info.provincia}
       </span>
-      <span className="text-muted-foreground">•</span>
-      <Badge variant="secondary" className="text-xs">
+      <span className="text-muted-foreground hidden lg:inline">•</span>
+      <Badge variant="secondary" className="text-xs hidden lg:inline-flex">
         Año {info.año}
       </Badge>
     </div>

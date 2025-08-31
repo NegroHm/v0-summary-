@@ -24,25 +24,26 @@ export function AnimatedUniversityHeader() {
         setCurrentIndex((prev) => (prev + 1) % universityAbbreviations.length)
         setIsVisible(true)
       }, 300)
-    }, 2000)
+    }, 2000) // Cambio cada 2 segundos
 
     return () => clearInterval(interval)
   }, [])
 
   return (
-    <div className="text-center">
-      <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground mb-6">
-        Summary +{' '}
+    <div className="text-center px-2">
+      <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
+        <span className="block sm:inline">Summary + </span>
         <span 
-          className={`inline-block transition-all duration-300 ${
-            isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-          } ${colors[currentIndex]} font-extrabold`}
+          key={currentIndex}
+          className={`inline-block transition-all duration-300 ease-in-out ${
+            isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2'
+          } ${colors[currentIndex]} font-extrabold drop-shadow-lg`}
         >
           {universityAbbreviations[currentIndex]}
         </span>
       </h1>
-      <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-        La plataforma de estudios impulsada por IA para estudiantes universitarios
+      <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
+        AI-powered study platform for university students
       </p>
     </div>
   )

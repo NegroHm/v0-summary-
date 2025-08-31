@@ -20,31 +20,33 @@ export function DashboardHeader() {
   const { user } = useUser()
 
   return (
-    <header className="h-16 border-b border-border bg-card">
-      <div className="flex items-center justify-between h-full px-6">
+    <header className="h-14 sm:h-16 border-b border-border bg-card">
+      <div className="flex items-center justify-between h-full px-3 sm:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">S+</span>
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-base sm:text-lg">S+</span>
           </div>
-          <span className="text-xl font-semibold text-foreground">Summary+</span>
+          <span className="text-lg sm:text-xl font-semibold text-foreground">Summary+</span>
         </Link>
 
-        {/* User Info - Always visible */}
+        {/* User Info - Always visible on larger screens */}
         <div className="flex-1 flex justify-center">
           <UserInfoDisplay />
         </div>
 
         {/* Right side - Theme toggle and user profile */}
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" asChild>
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
             <Link href="/" className="flex items-center space-x-2">
               <Home className="w-4 h-4" />
               <span>Home</span>
             </Link>
           </Button>
 
-          <ThemeToggle />
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
